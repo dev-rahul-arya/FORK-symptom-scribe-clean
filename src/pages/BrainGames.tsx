@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Brain, Award, Trophy, Target, Lightbulb, Puzzle } from "lucide-react";
+import { Brain, Award, Trophy, Target, Lightbulb, Puzzle, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface GameScore {
@@ -20,6 +20,7 @@ const BrainGames = () => {
   const [wordSequence, setWordSequence] = useState<string[]>([]);
   const [userSequence, setUserSequence] = useState<{ word: string; index: number }[]>([]);
   const [wordPhase, setWordPhase] = useState<"memorize" | "recall">("memorize");
+  const [timeLeft, setTimeLeft] = useState(10);
   const { toast } = useToast();
 
   const healthWords = [
@@ -50,6 +51,7 @@ const BrainGames = () => {
     setWordSequence(sequence);
     setUserSequence([]);
     setWordPhase("memorize");
+    setTimeLeft(10);
     setActiveGame("word");
 
     toast({
@@ -66,6 +68,15 @@ const BrainGames = () => {
       });
     }, 10000);
   };
+  useEffect(() => {
+    if (wordPhase !== "memorize" || timeLeft <= 0) return;
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [wordPhase, timeLeft]);
 
   const generateMathQuestion = () => {
     const num1 = Math.floor(Math.random() * 50) + 10;
@@ -278,7 +289,16 @@ const BrainGames = () => {
           <CardContent className="space-y-6">
             <div className="space-y-4">
               <div className="p-6 bg-accent rounded-xl">
-                <h3 className="text-lg font-semibold mb-4">Words to memorize:</h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">Words to memorize:</h3>
+
+                  {wordPhase === "memorize" && (
+                    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary font-semibold">
+                      <Clock className="w-4 h-4" />
+                      <span>{timeLeft}s</span>
+                    </div>
+                  )}
+                </div>
                 <div className="flex flex-wrap gap-3">
                   {wordPhase === "memorize" && wordSequence.map((word, idx) => (
                     <div
@@ -343,7 +363,11 @@ const BrainGames = () => {
                   Check Answer
                 </Button>
                 <Button variant="outline" onClick={() => setUserSequence([])}>
-                  Reset
+                  Reset Selections
+                </Button>
+
+                <Button variant="secondary" onClick={startWordGame}>
+                  Restart Game
                 </Button>
               </div>
             </div>
