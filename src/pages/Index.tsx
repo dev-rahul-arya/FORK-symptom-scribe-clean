@@ -344,49 +344,59 @@ const Index = () => {
         </motion.div>
       </section>
 
-      {/* Testimonials Section */}
-      <section className="bg-gradient-to-br from-primary via-primary-glow to-secondary py-20 px-4">
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={{ duration: 0.5 }}
-                className="max-w-4xl mx-auto"
-              >
-                <div className="text-center mb-12">
-                  <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">What Our Users Say</h2>
-                  <p className="text-white/90 text-lg">Join thousands of satisfied users taking control of their health</p>
-                </div>
+          {/* Testimonials Section */}
+      <section className="bg-muted py-20 px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.5 }}
+              className="max-w-4xl mx-auto"
+            >
+              <div className="text-center mb-12">
+                <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">What Our Users Say</h2>
+                <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+                  Join thousands of satisfied users taking control of their health
+                </p>
+              </div>
 
-                <Card className="bg-white/10 backdrop-blur-sm border-white/20">
-                  <CardContent className="pt-6">
-                    <div className="text-center min-h-[200px] flex flex-col justify-center">
-                      <div className="flex justify-center mb-4">
-                        {[...Array(testimonials[activeTestimonial].rating)].map((_, i) => (
-                          <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                        ))}
-                      </div>
-                      <p className="text-white text-lg mb-6 italic">"{testimonials[activeTestimonial].content}"</p>
-                      <div>
-                        <p className="text-white font-bold">{testimonials[activeTestimonial].name}</p>
-                        <p className="text-white/80 text-sm">{testimonials[activeTestimonial].role}</p>
-                      </div>
+              <Card className="bg-card border-border rounded-xl shadow-sm overflow-hidden">
+                <CardContent className="p-8 md:p-10">
+                  <div className="text-center min-h-[220px] flex flex-col justify-center">
+                    <div className="flex justify-center gap-1.5 mb-5">
+                      {[...Array(testimonials[activeTestimonial].rating)].map((_, i) => (
+                        <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                      ))}
                     </div>
-                    <div className="flex justify-center gap-2 mt-6">
+
+                    <p className="text-foreground text-lg md:text-xl italic leading-8 max-w-3xl mx-auto mb-7">
+                      "{testimonials[activeTestimonial].content}"
+                    </p>
+
+                    <div className="mb-6">
+                      <p className="text-foreground text-lg font-bold mb-1">{testimonials[activeTestimonial].name}</p>
+                      <p className="text-muted-foreground text-sm">{testimonials[activeTestimonial].role}</p>
+                    </div>
+
+                    <div className="flex justify-center items-center gap-2 mt-4">
                       {testimonials.map((_, i) => (
                         <button
                           key={i}
                           onClick={() => setActiveTestimonial(i)}
-                          className={`w-2 h-2 rounded-full transition-all ${
-                            i === activeTestimonial ? "bg-white w-8" : "bg-white/50"
+                          aria-label={`Show testimonial ${i + 1}`}
+                          className={`rounded-full transition-all duration-300 ${
+                            i === activeTestimonial
+                              ? "w-8 h-2 bg-primary"
+                              : "w-2 h-2 bg-muted-foreground/40"
                           }`}
                         />
                       ))}
                     </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </section>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </section>
 
       {/* FAQ Section */}
        <section id="faq" className="container mx-auto py-20 px-4">
