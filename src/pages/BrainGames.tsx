@@ -1,14 +1,15 @@
 import { useEffect, useState, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { 
-  Brain, Award, Trophy, Target, Lightbulb, Puzzle, Clock, 
-  Activity, Heart, Moon, Droplet, TrendingUp, Zap, 
-  Shield, Flame, Sparkles, Timer, SkipForward 
+import {
+  Brain, Award, Trophy, Target, Lightbulb, Puzzle, Clock,
+  Activity, Heart, Moon, Droplet, TrendingUp, Zap,
+  Shield, Flame, Sparkles, Timer, SkipForward
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { showSuccess, showError, showInfo, showWarning } from "@/lib/toast-helpers";
 import confetti from 'canvas-confetti';
+import { shuffleArray } from "@/lib/utils";
 
 interface TrendQuestion {
   id: number;
@@ -31,7 +32,7 @@ const BrainGames = () => {
   const [userSequence, setUserSequence] = useState<{ word: string; index: number }[]>([]);
   const [wordPhase, setWordPhase] = useState<"memorize" | "recall">("memorize");
   const [timeLeft, setTimeLeft] = useState(10);
-  
+
   // Pattern Recognition Game States
   const [patternScore, setPatternScore] = useState(0);
   const [patternStreak, setPatternStreak] = useState(0);
@@ -47,11 +48,12 @@ const BrainGames = () => {
   const [timedMode, setTimedMode] = useState(false);
   const [questionTimeLeft, setQuestionTimeLeft] = useState(15);
   const [showFireStreak, setShowFireStreak] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);  
+  const timerRef = useRef<number | null>(null);
+  const wordTimeoutRef = useRef<number | null>(null);
   const TOTAL_QUESTIONS = 10;
   const XP_PER_QUESTION = 10;
   const XP_PER_LEVEL = 100;
-  
+
   const { toast } = useToast();
 
   const healthWords = [
@@ -67,7 +69,7 @@ const BrainGames = () => {
       origin: { y: 0.6 },
       colors: ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7']
     });
-    
+
     setTimeout(() => {
       confetti({
         particleCount: 100,
@@ -101,7 +103,7 @@ const BrainGames = () => {
       showSuccess("💎 LEGENDARY!", `${patternStreak} streak! You're a master!`);
       triggerConfetti();
     }
-    
+
     // Reset fire streak animation after 2 seconds
     const timer = setTimeout(() => setShowFireStreak(false), 2000);
     return () => clearTimeout(timer);
@@ -111,9 +113,9 @@ const BrainGames = () => {
   useEffect(() => {
     if (activeGame === "pattern" && timedMode && !showPatternFeedback && !gameCompleted && currentQuestion) {
       if (timerRef.current) clearInterval(timerRef.current);
-      
+
       setQuestionTimeLeft(15);
-      timerRef.current = setInterval(() => {
+      timerRef.current = window.setInterval(() => {
         setQuestionTimeLeft(prev => {
           if (prev <= 1) {
             // Time's up - auto answer incorrect
@@ -125,8 +127,8 @@ const BrainGames = () => {
           }
           return prev - 1;
         });
-      }, 1000);
-      
+      }, 1000) as unknown as number;
+
       return () => {
         if (timerRef.current) clearInterval(timerRef.current);
       };
@@ -137,7 +139,7 @@ const BrainGames = () => {
   const generateTrendQuestion = (): TrendQuestion => {
     const metricTypes = ["steps", "heart_rate", "sleep", "water"] as const;
     const metricType = metricTypes[Math.floor(Math.random() * metricTypes.length)];
-    
+
     const patterns = [
       { name: "increasing", getValue: (i: number, start: number) => start + (i * 5), step: 5, description: "Increasing by 5 each day" },
       { name: "increasing_fast", getValue: (i: number, start: number) => start + (i * 10), step: 10, description: "Increasing by 10 each day" },
@@ -146,17 +148,17 @@ const BrainGames = () => {
       { name: "multiply", getValue: (i: number, start: number) => start * Math.pow(2, i), step: "x2", description: "Doubling each day" },
       { name: "alternating", getValue: (i: number, start: number) => i % 2 === 0 ? start : start + 15, step: 15, description: "Alternating between two values" }
     ];
-    
+
     const pattern = patterns[Math.floor(Math.random() * patterns.length)];
-    
+
     let startValue = 0;
-    switch(metricType) {
+    switch (metricType) {
       case "steps": startValue = Math.floor(Math.random() * 3000) + 4000; break;
       case "heart_rate": startValue = Math.floor(Math.random() * 30) + 60; break;
       case "sleep": startValue = Math.floor(Math.random() * 3) + 5; break;
       case "water": startValue = Math.floor(Math.random() * 4) + 4; break;
     }
-    
+
     const values = [];
     for (let i = 0; i < 3; i++) {
       let val = pattern.getValue(i, startValue);
@@ -167,14 +169,14 @@ const BrainGames = () => {
       }
       values.push(val);
     }
-    
+
     let correctAnswer = pattern.getValue(3, startValue);
     if (metricType === "sleep" || metricType === "water") {
       correctAnswer = Math.round(correctAnswer * 10) / 10;
     } else {
       correctAnswer = Math.round(correctAnswer);
     }
-    
+
     const options = [correctAnswer];
     while (options.length < 4) {
       let offset = 0;
@@ -192,7 +194,7 @@ const BrainGames = () => {
         if (!options.includes(wrongOption) && wrongOption > 0) options.push(wrongOption);
       }
     }
-    
+
     return {
       id: Date.now(),
       metricType,
@@ -200,7 +202,7 @@ const BrainGames = () => {
       pattern: pattern.name,
       patternDescription: pattern.description,
       correctAnswer,
-      options: options.sort(() => Math.random() - 0.5)
+      options: shuffleArray(options)
     };
   };
 
@@ -235,11 +237,11 @@ const BrainGames = () => {
 
   const useFiftyFifty = () => {
     if (lifelineUsed || !currentQuestion || showPatternFeedback) return;
-    
+
     const wrongOptions = currentQuestion.options.filter(opt => opt !== currentQuestion.correctAnswer);
-    const randomWrong = wrongOptions.sort(() => Math.random() - 0.5).slice(0, 2);
-    const newOptions = [currentQuestion.correctAnswer, ...randomWrong].sort(() => Math.random() - 0.5);
-    
+    const randomWrong = shuffleArray(wrongOptions).slice(0, 1);
+    const newOptions = shuffleArray([currentQuestion.correctAnswer, ...randomWrong]);
+
     setFilteredOptions(newOptions);
     setLifelineUsed(true);
     showInfo("50-50 Used!", "Two wrong options removed!");
@@ -247,19 +249,19 @@ const BrainGames = () => {
 
   const handlePatternAnswer = (answer: number) => {
     if (showPatternFeedback || !currentQuestion || gameCompleted) return;
-    
+
     if (timerRef.current) clearInterval(timerRef.current);
-    
+
     const isTimeout = answer === -1;
     const isCorrect = !isTimeout && answer === currentQuestion.correctAnswer;
     setIsPatternCorrect(isCorrect);
     setShowPatternFeedback(true);
     const newQuestionsCount = questionsAnswered + 1;
     setQuestionsAnswered(newQuestionsCount);
-    
+
     let pointsEarned = 0;
     let xpEarned = 0;
-    
+
     if (isCorrect) {
       let timeBonus = 0;
       if (timedMode && questionTimeLeft > 0) {
@@ -270,21 +272,21 @@ const BrainGames = () => {
         pointsEarned = 10;
         xpEarned = XP_PER_QUESTION;
       }
-      
+
       const newScore = patternScore + pointsEarned;
       const newStreak = patternStreak + 1;
       const newXp = xp + xpEarned;
-      
+
       setPatternScore(newScore);
       setPatternStreak(newStreak);
       setXp(newXp);
-      
+
       if (timeBonus > 0) {
         showSuccess(`✓ Correct! ⚡`, `+${pointsEarned} points! (${timeBonus} time bonus) Streak: ${newStreak}`);
       } else {
         showSuccess(`✓ Correct!`, `+${pointsEarned} points! Streak: ${newStreak}`);
       }
-      
+
       toast({
         title: "✓ Correct!",
         description: `Day 4 value is ${currentQuestion.correctAnswer}`,
@@ -293,19 +295,19 @@ const BrainGames = () => {
       setPatternStreak(0);
       const msg = isTimeout ? "Time's up!" : `The correct trend was: ${currentQuestion.patternDescription}`;
       showError("✗ Incorrect", msg);
-      
+
       toast({
         title: "✗ Incorrect",
         description: `Day 4 should be ${currentQuestion.correctAnswer}. ${currentQuestion.patternDescription}`,
         variant: "destructive",
       });
     }
-    
+
     if (newQuestionsCount >= TOTAL_QUESTIONS) {
       setGameCompleted(true);
       const maxScore = TOTAL_QUESTIONS * 15;
       const percentage = (patternScore + (isCorrect ? 10 : 0)) / (TOTAL_QUESTIONS * 10) * 100;
-      
+
       if (percentage >= 100) {
         triggerConfetti();
         showSuccess("🎉 PERFECT GAME! 🎉", "You scored 100/100! Amazing!");
@@ -313,19 +315,20 @@ const BrainGames = () => {
         triggerConfetti();
         showSuccess("🌟 EXCELLENT!", "Great job! Keep practicing!");
       }
-      
+
       // Bonus XP for completing
       const completionBonus = 50;
       setXp(prev => prev + completionBonus);
       showSuccess("Game Complete!", `+${completionBonus} XP bonus!`);
       return;
     }
-    
+
     setTimeout(() => {
       const nextQuestion = generateTrendQuestion();
       setCurrentQuestion(nextQuestion);
       setFilteredOptions([]);
       setShowPatternFeedback(false);
+      setLifelineUsed(false);
     }, 2000);
   };
 
@@ -347,7 +350,7 @@ const BrainGames = () => {
   };
 
   const getMetricIcon = (type: string) => {
-    switch(type) {
+    switch (type) {
       case "steps": return <Activity className="w-6 h-6 text-green-500" />;
       case "heart_rate": return <Heart className="w-6 h-6 text-red-500" />;
       case "sleep": return <Moon className="w-6 h-6 text-purple-500" />;
@@ -357,7 +360,7 @@ const BrainGames = () => {
   };
 
   const getMetricTitle = (type: string) => {
-    switch(type) {
+    switch (type) {
       case "steps": return "Daily Steps";
       case "heart_rate": return "Heart Rate (BPM)";
       case "sleep": return "Sleep (Hours)";
@@ -367,7 +370,7 @@ const BrainGames = () => {
   };
 
   const getMetricUnit = (type: string) => {
-    switch(type) {
+    switch (type) {
       case "steps": return "steps";
       case "heart_rate": return "BPM";
       case "sleep": return "hours";
@@ -378,7 +381,7 @@ const BrainGames = () => {
 
   const startMemoryGame = () => {
     const cards = [...Array(8)].map((_, i) => i % 4);
-    setMemoryCards(cards.sort(() => Math.random() - 0.5));
+    setMemoryCards(shuffleArray(cards));
     setFlippedCards([]);
     setMatchedCards([]);
     setActiveGame("memory");
@@ -403,15 +406,16 @@ const BrainGames = () => {
     setWordPhase("memorize");
     setTimeLeft(10);
     setActiveGame("word");
-
-    showInfo("Memorize these words!", "You have 10 seconds...");
-
-    setTimeout(() => {
+    wordTimeoutRef.current = window.setTimeout(() => {
       setWordPhase("recall");
       showWarning("Time's up!", "Now recall the words in order");
     }, 10000);
+
+    showInfo("Memorize these words!", "You have 10 seconds...");
+
+
   };
-  
+
   useEffect(() => {
     if (wordPhase !== "memorize" || timeLeft <= 0) return;
 
@@ -421,6 +425,14 @@ const BrainGames = () => {
 
     return () => clearInterval(timer);
   }, [wordPhase, timeLeft]);
+
+  // Cleanup timeout when leaving Word game or unmounting
+  useEffect(() => {
+    if (activeGame !== "word" && wordTimeoutRef.current) {
+      clearTimeout(wordTimeoutRef.current);
+      wordTimeoutRef.current = null;
+    }
+  }, [activeGame]);
 
   const generateMathQuestion = () => {
     const num1 = Math.floor(Math.random() * 50) + 10;
@@ -441,7 +453,7 @@ const BrainGames = () => {
       if (memoryCards[first] === memoryCards[second]) {
         setMatchedCards([...matchedCards, first, second]);
         setFlippedCards([]);
-        
+
         showSuccess("Match Found!", `You matched a pair! (${matchedCards.length / 2 + 1}/${memoryCards.length / 2})`);
 
         if (matchedCards.length + 2 === memoryCards.length) {
@@ -510,9 +522,9 @@ const BrainGames = () => {
               </div>
               <p className="mt-4 text-sm">
                 {percentage >= 100 ? "🌟 PERFECT! Health trend master!" :
-                 percentage >= 80 ? "👍 Excellent! Keep going!" :
-                 percentage >= 60 ? "💪 Good job! Try for perfect next time!" :
-                 "📚 Keep practicing! You'll get better!"}
+                  percentage >= 80 ? "👍 Excellent! Keep going!" :
+                    percentage >= 60 ? "💪 Good job! Try for perfect next time!" :
+                      "📚 Keep practicing! You'll get better!"}
               </p>
               <div className="mt-4 flex items-center justify-center gap-4">
                 <div className="text-center">
@@ -533,11 +545,11 @@ const BrainGames = () => {
         </Card>
       );
     }
-    
+
     if (!currentQuestion) return null;
-    
+
     const displayOptions = filteredOptions.length > 0 ? filteredOptions : currentQuestion.options;
-    
+
     return (
       <Card>
         <CardHeader>
@@ -569,18 +581,18 @@ const BrainGames = () => {
           <CardDescription className="flex items-center justify-between">
             <span>Identify the pattern and find Day 4 value</span>
             <div className="flex gap-2">
-              <Button 
-                variant={timedMode ? "default" : "outline"} 
-                size="sm" 
+              <Button
+                variant={timedMode ? "default" : "outline"}
+                size="sm"
                 onClick={() => setTimedMode(!timedMode)}
                 className="gap-1"
               >
                 <Timer className="w-3 h-3" />
                 {timedMode ? "Timed" : "Casual"}
               </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={useFiftyFifty}
                 disabled={lifelineUsed || showPatternFeedback}
                 className="gap-1"
@@ -607,11 +619,11 @@ const BrainGames = () => {
               {getMetricIcon(currentQuestion.metricType)}
               <h3 className="text-lg font-semibold">{getMetricTitle(currentQuestion.metricType)}</h3>
             </div>
-            
+
             <div className="flex items-end justify-center gap-6 h-48 mb-6">
               {currentQuestion.values.map((value, index) => {
                 let maxValue = 0;
-                switch(currentQuestion.metricType) {
+                switch (currentQuestion.metricType) {
                   case "steps": maxValue = 15000; break;
                   case "heart_rate": maxValue = 150; break;
                   case "sleep": maxValue = 12; break;
@@ -634,7 +646,7 @@ const BrainGames = () => {
                 <span className="text-xs text-muted-foreground">Day 4</span>
               </div>
             </div>
-            
+
             <p className="text-center text-sm text-muted-foreground">
               Look at the pattern from Day 1 → Day 2 → Day 3
             </p>
@@ -659,8 +671,8 @@ const BrainGames = () => {
           {showPatternFeedback && (
             <div className={`p-4 rounded-lg text-center animate-in fade-in slide-in-from-bottom-2 ${isPatternCorrect ? "bg-green-500/10 border border-green-500" : "bg-red-500/10 border border-red-500"}`}>
               <p className={isPatternCorrect ? "text-green-600" : "text-red-600"}>
-                {isPatternCorrect 
-                  ? `✅ Correct! Day 4 should be ${currentQuestion.correctAnswer} ${getMetricUnit(currentQuestion.metricType)}` 
+                {isPatternCorrect
+                  ? `✅ Correct! Day 4 should be ${currentQuestion.correctAnswer} ${getMetricUnit(currentQuestion.metricType)}`
                   : `❌ Incorrect! The pattern was: ${currentQuestion.patternDescription}`}
               </p>
               <p className="text-sm text-muted-foreground mt-2">
@@ -766,7 +778,14 @@ const BrainGames = () => {
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <span>Word Recall Challenge</span>
-              <Button variant="outline" onClick={() => { setActiveGame(null); showInfo("Word Game Exited", "Keep practicing your memory!"); }}>Exit Game</Button>
+              <Button variant="outline" onClick={() => {
+                if (wordTimeoutRef.current) {
+                  clearTimeout(wordTimeoutRef.current);
+                  wordTimeoutRef.current = null;
+                }
+                setActiveGame(null);
+                showInfo("Word Game Exited", "Keep practicing your memory!");
+              }}>Exit Game</Button>
             </CardTitle>
             <CardDescription>Memorize the words, then recall them in order</CardDescription>
           </CardHeader>
