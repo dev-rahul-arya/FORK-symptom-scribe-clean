@@ -5,7 +5,7 @@ import {
   Heart, Wind, Brain, Thermometer, Zap, Clock,
   ChevronDown, ChevronUp, CheckCircle2, Copy, Share2,
   ShieldAlert, Flame, Activity, PhoneCall, Volume2, VolumeX,
-  ArrowUp, Hospital, Pill, Stethoscope, Bell, BookOpen,
+  Hospital, Pill, Stethoscope, Bell, BookOpen,
   Navigation
 } from "lucide-react";
 import { showSuccess, showInfo } from "@/lib/toast-helpers";
@@ -181,7 +181,7 @@ const Emergency = () => {
   const [copiedNumber, setCopiedNumber]           = useState<string | null>(null);
   const [currentTime, setCurrentTime]             = useState(new Date());
   const [muted, setMuted]                         = useState(false);
-  const [showBackToTop, setShowBackToTop]         = useState(false);
+
   const [activeSection, setActiveSection]         = useState("numbers");
   const [checkedReminders, setCheckedReminders]   = useState<number[]>([]);
   const [hospitalLoading, setHospitalLoading]     = useState<string | null>(null);
@@ -195,12 +195,7 @@ const Emergency = () => {
     return () => clearInterval(tick);
   }, []);
 
-  // ── Show/hide back-to-top button ───────────────────────────────────────────
-  useEffect(() => {
-    const onScroll = () => setShowBackToTop(window.scrollY > 300);
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+
 
   // ── Highlight active nav item as user scrolls ──────────────────────────────
   useEffect(() => {
@@ -240,8 +235,7 @@ const Emergency = () => {
     sectionRefs.current[id]?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  // ── Back to top ────────────────────────────────────────────────────────────
-  const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
+
 
   // ── Filtered numbers ───────────────────────────────────────────────────────
   const filteredNumbers = emergencyNumbers.filter(
@@ -786,16 +780,7 @@ const Emergency = () => {
         </div>
       </div>
 
-      {/* ── Floating Back to Top Button ───────────────────────────────────── */}
-      {showBackToTop && (
-        <button
-          onClick={scrollToTop}
-          className="fixed bottom-6 right-6 z-50 p-3 rounded-full bg-destructive text-white shadow-lg shadow-destructive/30 hover:bg-destructive/90 active:scale-95 transition-all duration-150"
-          title="Back to top"
-        >
-          <ArrowUp className="w-5 h-5" />
-        </button>
-      )}
+
 
     </div>
   );
