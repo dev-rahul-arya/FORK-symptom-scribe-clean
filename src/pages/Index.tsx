@@ -538,7 +538,21 @@ const Index = () => {
         <ul className="space-y-3 text-sm">
           <li><Link to="/health-library" className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"><Heart className="w-4 h-4" /> Health Library</Link></li>
           <li><Link to="/emergency" className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"><Shield className="w-4 h-4" /> Emergency Guide</Link></li>
-          <li><Link to="/faq" className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"><HelpCircle className="w-4 h-4" /> FAQ</Link></li>
+          <li>
+          <button
+            onClick={() => {
+              const faq = document.getElementById("faq");
+              if (faq) {
+                faq.scrollIntoView({ behavior: "smooth" });
+              } else {
+                window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+              }
+            }}
+            className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 w-full text-left text-sm"
+          >
+            <HelpCircle className="w-4 h-4" /> FAQ
+          </button>
+        </li>
           <li><Link to="/blog" className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"><FileText className="w-4 h-4" /> Blog</Link></li>
         </ul>
       </div>
