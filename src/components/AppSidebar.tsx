@@ -19,7 +19,6 @@ import {
 
 const menuItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "AI Assistant", url: "/chat", icon: MessageSquare },
   { title: "AI Health Assistant", url: "/ai-health-assistant", icon: Bot }, 
   { title: "Health Metrics", url: "/metrics", icon: Activity },
   { title: "History", url: "/history", icon: History },
