@@ -285,24 +285,7 @@ const AIHealthAssistant = () => {
                       return html;
                     })() }} />
                   </div>
-                  {/* Action cards for assistant */}
-                  {msg.role === "assistant" && (
-                    <div className="flex gap-2 mt-1">
-                      {[
-                        { icon: "🔍", label: "Possible Causes" },
-                        { icon: "💊", label: "Recommended Actions" },
-                        { icon: "🏥", label: "When to See a Doctor" },
-                      ].map((card) => (
-                        <button
-                          key={card.label}
-                          className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border border-border bg-background hover:bg-muted hover:border-teal-500/40 text-muted-foreground hover:text-foreground transition-all"
-                        >
-                          <span>{card.icon}</span>
-                          <span>{card.label}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
+ 
                   <span className={`text-[10px] text-muted-foreground px-1 ${msg.role === "user" ? "text-right" : "text-left"}`}>
                     {msg.time} {msg.role === "user" && "✓"}
                   </span>
@@ -331,8 +314,7 @@ const AIHealthAssistant = () => {
       {/* Input — pinned at bottom */}
       <div className="flex-shrink-0 border-t border-border px-4 py-3 bg-background">
         <div className="max-w-2xl mx-auto">
-          <div className="flex items-end gap-2 bg-muted border border-border rounded-2xl px-4 py-2.5 focus-within:border-teal-500/50 focus-within:ring-1 focus-within:ring-teal-500/20 transition-all">
-            <span className="text-muted-foreground mb-0.5 flex-shrink-0 text-base">🎤</span>
+          <div className="flex items-center gap-2 bg-muted border border-border rounded-2xl px-4 py-2.5 focus-within:border-teal-500/50 focus-within:ring-1 focus-within:ring-teal-500/20 transition-all min-h-[48px]">
             <textarea
               ref={textareaRef}
               value={symptoms}
@@ -340,12 +322,12 @@ const AIHealthAssistant = () => {
               onKeyDown={handleKeyDown}
               placeholder="Describe your symptoms in detail…"
               rows={1}
-              className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground resize-none focus:outline-none max-h-28 leading-relaxed"
+              className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground resize-none focus:outline-none max-h-28 leading-relaxed text-center placeholder:text-center self-center"
             />
             <button
               onClick={() => handleAnalyze()}
               disabled={loading || !symptoms.trim()}
-              className="w-8 h-8 rounded-xl bg-teal-500 hover:bg-teal-400 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-all flex-shrink-0 mb-0.5 hover:scale-105 active:scale-95"
+              className="w-8 h-8 rounded-xl bg-teal-500 hover:bg-teal-400 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-all flex-shrink-0 hover:scale-105 active:scale-95"
               aria-label="Send"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 text-white">
@@ -364,3 +346,4 @@ const AIHealthAssistant = () => {
 };
  
 export default AIHealthAssistant;
+ 
