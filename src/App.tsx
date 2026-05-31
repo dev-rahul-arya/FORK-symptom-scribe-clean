@@ -17,6 +17,8 @@ import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
+import AIHealthAssistant from "./pages/AIHealthAssistant";
+
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Disclaimer from "./pages/Disclaimer";
@@ -124,6 +126,16 @@ const App = () => (
               <ProtectedRoute>
                 <Layout>
                   <Settings />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+           <Route
+            path="/ai-health-assistant"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <AIHealthAssistant />
                 </Layout>
               </ProtectedRoute>
             }

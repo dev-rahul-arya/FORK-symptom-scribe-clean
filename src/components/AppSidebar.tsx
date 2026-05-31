@@ -1,3 +1,5 @@
+import { LayoutDashboard, MessageSquare, Activity, History, User, Phone, LogOut, Brain, Sparkles, Settings, Bot } from "lucide-react";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { LayoutDashboard, MessageSquare, Activity, History, User, Phone, LogOut, Brain, Sparkles, Settings } from "lucide-react";
 import { NavLink,useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,7 +19,7 @@ import {
 
 const menuItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "AI Assistant", url: "/chat", icon: MessageSquare },
+  { title: "AI Health Assistant", url: "/ai-health-assistant", icon: Bot }, 
   { title: "Health Metrics", url: "/metrics", icon: Activity },
   { title: "History", url: "/history", icon: History },
   { title: "Profile", url: "/profile", icon: User },
