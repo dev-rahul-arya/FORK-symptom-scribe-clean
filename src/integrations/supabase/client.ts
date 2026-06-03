@@ -5,11 +5,14 @@ import { browserEnv } from '@/lib/env';
 const { supabaseUrl, supabasePublishableKey } = browserEnv;
 
 // ✅ Validate required environment variables
-if (!supabaseUrl || !supabasePublishableKey) {
+const missingVars = [];
+if (!supabaseUrl) missingVars.push('SUPABASE_URL');
+if (!supabasePublishableKey) missingVars.push('SUPABASE_PUBLISHABLE_KEY');
+
+if (missingVars.length > 0) {
   throw new Error(
     `Missing required Supabase environment variables:\n` +
-    `SUPABASE_URL: ${supabaseUrl ? "correct" : "wrong"}\n` +
-    `SUPABASE_PUBLISHABLE_KEY: ${supabasePublishableKey ? "correct" : "wrong"}`
+    missingVars.map(v => `- ${v}`).join('\n')
   );
 }
 
