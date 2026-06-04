@@ -1,20 +1,3 @@
-# .github/workflows/welcome-new-contributors.yml
-#
-# PURPOSE:
-#   Automatically posts a welcome message on a contributor's 1st merged PR.
-#
-# DETECTION LOGIC:
-#   1. Triggers on `pull_request_target` with type `closed`.
-#   2. Checks `github.event.pull_request.merged == true` to ensure PR was merged, not just closed.
-#   3. Uses the GitHub REST API to fetch ALL merged PRs by this user and counts them.
-#   4. Posts the welcome message ONLY if this is their first merged PR (count == 1).
-#   5. Checks existing comments to prevent duplicate welcome messages.
-#
-# WHY NOT author_association?
-#   `author_association` values like 'FIRST_TIME_CONTRIBUTOR', 'FIRST_TIMER', 'NONE'
-#   are unreliable and inconsistent across repositories. We instead verify directly
-#   via the API by counting the user's previously merged PRs.
-
 name: Welcome First-Time Contributors
 
 on:
@@ -24,11 +7,10 @@ on:
 
 jobs:
   welcome:
-    # Only run when the PR was actually merged (not just closed/rejected)
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     permissions:
-      pull-requests: write  # Needed to post a comment on the PR
+      pull-requests: write
 
     steps:
       - name: Check if first-time contributor and post welcome message
@@ -43,13 +25,11 @@ jobs:
 
             console.log(`PR #${prNumber} merged by: ${contributor}`);
 
-            // ── 1. Count how many merged PRs this user has in this repo ──────────
-            // We search for merged PRs by this user. If count is 1, this is their first.
             let mergedPRCount = 0;
             try {
               const searchResult = await github.rest.search.issuesAndPullRequests({
                 q: `repo:${owner}/${repo} is:pr is:merged author:${contributor}`,
-                per_page: 2   // We only need to know if count >= 2; fetching 2 is enough
+                per_page: 2
               });
               mergedPRCount = searchResult.data.total_count;
               console.log(`Total merged PRs by ${contributor}: ${mergedPRCount}`);
@@ -58,14 +38,11 @@ jobs:
               return;
             }
 
-            // If they have more than 1 merged PR, they're not a first-timer
             if (mergedPRCount !== 1) {
               console.log('Not a first-time contributor. Skipping welcome message.');
               return;
             }
 
-            // ── 2. Check for duplicate welcome comments ───────────────────────────
-            // Prevent posting the same welcome message twice (e.g., workflow re-runs)
             const WELCOME_MARKER = '<!-- welcome-first-time-contributor -->';
             try {
               const comments = await github.rest.issues.listComments({
@@ -84,18 +61,19 @@ jobs:
               return;
             }
 
-            // ── 3. Post the welcome message ───────────────────────────────────────
-            const welcomeMessage = `${WELCOME_MARKER}
-            
-🎉 **Thank you for your contribution, @${contributor}!** 🌟
-
-Your Pull Request has been successfully merged into the project. Welcome to the **Symptom Scribe** contributor family!
-
-If you find this repository helpful, please consider giving it a ⭐ — it really helps support and motivate the project.
-
-We look forward to seeing more of your amazing contributions!
-
-**Happy Contributing** 🚀`;
+            const welcomeMessage = [
+              WELCOME_MARKER,
+              '',
+              `🎉 **Thank you for your contribution, @${contributor}!** 🌟`,
+              '',
+              'Your Pull Request has been successfully merged into the project. Welcome to the **Symptom Scribe** contributor family!',
+              '',
+              'If you find this repository helpful, please consider giving it a ⭐ — it really helps support and motivate the project.',
+              '',
+              'We look forward to seeing more of your amazing contributions!',
+              '',
+              '**Happy Contributing** 🚀'
+            ].join('\n');
 
             try {
               await github.rest.issues.createComment({
