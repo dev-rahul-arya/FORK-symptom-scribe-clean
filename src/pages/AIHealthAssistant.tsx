@@ -153,11 +153,14 @@ const AIHealthAssistant = () => {
         content: m.text,
       }));
 
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || browserEnv.supabasePublishableKey;
+
       const response = await fetch(browserEnv.getSupabaseFunctionUrl("symptom-analyzer"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${browserEnv.supabasePublishableKey}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           messages: [...recentContext, { role: "user", content: userMessage }],
