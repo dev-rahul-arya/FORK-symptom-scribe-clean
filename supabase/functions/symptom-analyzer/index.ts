@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 import { RequestSchema } from "./validation.ts";
 import { detectEmergencySymptoms } from "./medicalSafety.ts";
@@ -21,29 +22,46 @@ const getCorsHeaders = (origin: string | null) => ({
 });
 
 serve(async (req: Request): Promise<Response> => {
-  
   const origin = req.headers.get("origin");
 
-if (
-  origin &&
-  !ALLOWED_ORIGINS.includes(origin)
-) {
-  return new Response(
-    JSON.stringify({
-      error: "Origin not allowed",
-    }),
-    {
-      status: 403,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  );
-}
+  if (origin && !ALLOWED_ORIGINS.includes(origin)) {
+    return jsonResponse(
+      { error: "Origin not allowed" },
+      403,
+      getCorsHeaders(origin)
+    );
+  }
+
   if (req.method === "OPTIONS") {
     return new Response(null, {
       headers: getCorsHeaders(origin),
     });
+  }
+
+  // Enforce JWT validation for ALL non-preflight requests to prevent token budget exhaustion
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader) {
+    return jsonResponse(
+      { error: "Missing authorization header" },
+      401,
+      getCorsHeaders(origin)
+    );
+  }
+
+  const token = authHeader.replace("Bearer ", "");
+  const supabaseClient = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+  );
+
+  const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
+
+  if (userError || !user) {
+    return jsonResponse(
+      { error: "Unauthorized access: Invalid or expired token" },
+      401,
+      getCorsHeaders(origin)
+    );
   }
 
   try {

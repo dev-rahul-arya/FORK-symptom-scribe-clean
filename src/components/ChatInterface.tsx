@@ -180,11 +180,14 @@ const ChatInterface = () => {
       const previousHistory = messages.filter((_, i) => i !== 0);
       const recentContext = previousHistory.slice(-6);
 
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || browserEnv.supabasePublishableKey;
+
       const response = await fetch(browserEnv.getSupabaseFunctionUrl("symptom-analyzer"), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${browserEnv.supabasePublishableKey}`,
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({ messages: [...recentContext, userMessage] }),
       });
