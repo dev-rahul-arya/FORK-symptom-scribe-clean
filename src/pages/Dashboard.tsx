@@ -180,9 +180,16 @@ const Dashboard = () => {
             <div className="space-y-4">
               {recentHistory.map((item) => (
                 <div
-                  key={item.id}
-                  className="flex items-start justify-between border-b border-border pb-3 last:border-0 transition-all duration-300 hover:bg-muted/40 hover:px-2 rounded-md"
-                >
+  key={item.id}
+  className={`flex items-start justify-between border-b pb-3 last:border-0 transition-all duration-300 hover:px-2 rounded-md p-2 ${
+    item.severity_level === "high"
+      ? "bg-red-500/10 border-red-500 text-red-400"
+      : item.severity_level === "moderate"
+      ? "bg-yellow-500/10 border-yellow-500 text-yellow-400"
+      : "bg-green-500/10 border-green-500 text-green-400"
+  }`}
+>
+  
                   <div className="flex-1">
                     <p className="font-medium text-sm">{item.symptoms.substring(0, 60)}...</p>
                     <p className="text-xs text-muted-foreground mt-1">

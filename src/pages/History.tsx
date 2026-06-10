@@ -220,6 +220,18 @@ const History = () => {
       default: return "secondary";
     }
   };
+  const getSeverityBorder = (severity: string) => {
+  switch (severity?.toLowerCase()) {
+    case "low":
+      return "border-l-4 border-l-green-500";
+    case "moderate":
+      return "border-l-4 border-l-yellow-500";
+    case "high":
+      return "border-l-4 border-l-red-500";
+    default:
+      return "";
+  }
+};
 
   return (
     <div className="space-y-6">
@@ -278,13 +290,13 @@ const History = () => {
         </Card>
       ) : (
         <div className="space-y-4">
-          {history
-            .filter((entry) =>
-              entry.symptoms.toLowerCase().includes(searchQuery.toLowerCase()) &&
-              (severityFilter === "all" || entry.severity_level === severityFilter)
-            )
-            .map((entry) => (
-            <Card key={entry.id} className={entry.resolved ? "opacity-70" : ""}>
+          {visibleHistory.map((entry) => (
+           <Card
+  key={entry.id}
+  className={`${getSeverityBorder(entry.severity_level)} ${
+    entry.resolved ? "opacity-70" : ""
+  }`}
+>
               <CardHeader>
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
