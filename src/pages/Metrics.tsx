@@ -109,8 +109,8 @@ const Metrics = () => {
     loading: historyLoading,
     refresh,
     deleteRecord,
-    setSortOrder,
     sortOrder,
+    setSortOrder,
   } = useMetricsHistory(historyUserId);
   
   useEffect(() => {
@@ -161,15 +161,15 @@ const Metrics = () => {
     if (metricType === "blood_pressure" && (!systolic || !diastolic)) return;
     if (metricType !== "blood_pressure" && !value) return;
 
-    if (metricType === "heart_rate"){
+    if (metricType === "heart_rate") {
       const hr = Number(value);
-      if(hr < 30 || hr > 250){
+      if (hr < 30 || hr > 250) {
         alert("Heart Rate must be between 30 and 250 BPM");
         return;
       }
     }
     
-    if (metricType === "temperature"){
+    if (metricType === "temperature") {
       const temp = Number(value);
       if (temp < 86 || temp > 113) {
         alert("Temperature must be between 86°F and 113°F");
