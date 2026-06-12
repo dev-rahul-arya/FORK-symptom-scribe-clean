@@ -16,7 +16,7 @@
  * correctly to its output.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { render } from "@/test/utils";
 import { PasswordStrengthMeter } from "@/components/PasswordStrengthMeter";
@@ -25,9 +25,13 @@ import { PasswordStrengthMeter } from "@/components/PasswordStrengthMeter";
 // Clipboard mock
 // ---------------------------------------------------------------------------
 const writeTextMock = vi.fn().mockResolvedValue(undefined);
-vi.stubGlobal("navigator", {
-  clipboard: { writeText: writeTextMock },
-});
+
+function mockClipboard() {
+  Object.defineProperty(navigator, "clipboard", {
+    configurable: true,
+    value: { writeText: writeTextMock },
+  });
+}
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -36,18 +40,23 @@ function renderMeter(value: string, onChange = vi.fn()) {
   return render(<PasswordStrengthMeter value={value} onChange={onChange} />);
 }
 
+function getPasswordInput() {
+  return screen.getByLabelText(/password/i, { selector: "input" });
+}
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 describe("PasswordStrengthMeter", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockClipboard();
   });
 
   // 1. Basic rendering
   it("renders the password label and input", () => {
     renderMeter("");
-    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+    expect(getPasswordInput()).toBeInTheDocument();
   });
 
   // 2. Strength meter is hidden when the field is empty
@@ -67,7 +76,7 @@ describe("PasswordStrengthMeter", () => {
     const user = userEvent.setup();
     renderMeter("secret123");
 
-    const input = screen.getByLabelText(/password/i);
+    const input = getPasswordInput();
     expect(input).toHaveAttribute("type", "password");
 
     const toggleBtn = screen.getByRole("button", { name: /show password/i });
@@ -85,7 +94,7 @@ describe("PasswordStrengthMeter", () => {
     const onChange = vi.fn();
     render(<PasswordStrengthMeter value="" onChange={onChange} />);
 
-    await user.type(screen.getByLabelText(/password/i), "a");
+    await user.type(getPasswordInput(), "a");
     expect(onChange).toHaveBeenCalledWith("a");
   });
 
@@ -105,11 +114,11 @@ describe("PasswordStrengthMeter", () => {
 
   // 7. Copy button copies the current value to the clipboard
   it("copies the current password to the clipboard when the copy button is clicked", async () => {
-    const user = userEvent.setup();
     renderMeter("MyStr0ng!Pass");
 
     const copyBtn = screen.getByRole("button", { name: /copy generated password/i });
-    await user.click(copyBtn);
+    // userEvent.click sometimes has issues with stubbed globals, use fireEvent
+    fireEvent.click(copyBtn);
 
     await waitFor(() => {
       expect(writeTextMock).toHaveBeenCalledWith("MyStr0ng!Pass");
@@ -133,7 +142,7 @@ describe("PasswordStrengthMeter", () => {
   // 10. Requirements checklist is rendered for non-empty values
   it("renders the requirements checklist when a value is present", () => {
     renderMeter("partial");
-    expect(screen.getByText(/requirements/i)).toBeInTheDocument();
+    expect(screen.getByText("Requirements:")).toBeInTheDocument();
     expect(screen.getByRole("list")).toBeInTheDocument();
   });
 
