@@ -42,6 +42,11 @@ vi.mock("@/lib/toast-helpers", () => ({
   showInfo: vi.fn(),
 }));
 
+// Mock cached query helper so tests do not call Supabase Edge Functions
+vi.mock("@/lib/cached-queries", () => ({
+  getCachedData: vi.fn(),
+}));
+
 // Mock react-countup so it renders plain numbers synchronously (avoids
 // animation timers interfering with assertions)
 vi.mock("react-countup", () => ({
@@ -50,20 +55,16 @@ vi.mock("react-countup", () => ({
 }));
 
 import { supabase } from "@/integrations/supabase/client";
+import { getCachedData } from "@/lib/cached-queries";
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 const mockUser = { id: "test-user-id", email: "test@example.com" };
 
-/** Returns a fully resolved Supabase query chain stub. */
-function mockSupabaseQuery(data: unknown[] | null, error: unknown = null) {
-  const chain = {
-    select: vi.fn().mockReturnThis(),
-    eq: vi.fn().mockReturnThis(),
-    order: vi.fn().mockResolvedValue({ data, error }),
-  };
-  (supabase.from as Mock).mockReturnValue(chain);
+/** Returns a fully resolved cached query stub. */
+function mockCachedSymptoms(data: unknown[] | null, error: unknown = null) {
+  (getCachedData as Mock).mockResolvedValue({ data, error });
 }
 
 function mockAuthUser(user: typeof mockUser | null = mockUser) {
@@ -109,12 +110,7 @@ describe("Dashboard", () => {
   it("shows a loading state before data resolves", () => {
     mockAuthUser();
     // Never resolve the query during this test
-    const chain = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnValue(new Promise(() => {})),
-    };
-    (supabase.from as Mock).mockReturnValue(chain);
+    (getCachedData as Mock).mockReturnValue(new Promise(() => {}));
 
     render(<Dashboard />);
     // The loading skeleton should be present while awaiting the query
@@ -124,7 +120,7 @@ describe("Dashboard", () => {
   // 2. Empty state
   it("renders the empty-state prompt when the user has no history", async () => {
     mockAuthUser();
-    mockSupabaseQuery([]);
+    mockCachedSymptoms([]);
 
     render(<Dashboard />);
 
@@ -138,14 +134,14 @@ describe("Dashboard", () => {
   // 3. Stat cards render correct labels
   it("renders all four stat card labels", async () => {
     mockAuthUser();
-    mockSupabaseQuery(sampleSymptoms);
+    mockCachedSymptoms(sampleSymptoms);
 
     render(<Dashboard />);
 
     await waitFor(() => {
       expect(screen.getByText("Total Consultations")).toBeInTheDocument();
       expect(screen.getByText("Active Issues")).toBeInTheDocument();
-      expect(screen.getByText("Avg Risk Score")).toBeInTheDocument();
+      expect(screen.getByText("Overall Wellness")).toBeInTheDocument();
       expect(screen.getByText("Recent Activity")).toBeInTheDocument();
     });
   });
@@ -153,7 +149,7 @@ describe("Dashboard", () => {
   // 4. Stat values are calculated correctly
   it("calculates and displays the correct stat values from symptom data", async () => {
     mockAuthUser();
-    mockSupabaseQuery(sampleSymptoms);
+    mockCachedSymptoms(sampleSymptoms);
 
     render(<Dashboard />);
 
@@ -168,7 +164,7 @@ describe("Dashboard", () => {
   // 5. Recent history items are rendered
   it("renders recent symptom history items", async () => {
     mockAuthUser();
-    mockSupabaseQuery(sampleSymptoms);
+    mockCachedSymptoms(sampleSymptoms);
 
     render(<Dashboard />);
 
@@ -183,7 +179,7 @@ describe("Dashboard", () => {
   // 6. Severity colour logic – "high" severity items use the destructive class
   it("applies the correct severity colour for high-severity items", async () => {
     mockAuthUser();
-    mockSupabaseQuery(sampleSymptoms);
+    mockCachedSymptoms(sampleSymptoms);
 
     render(<Dashboard />);
 
@@ -196,7 +192,7 @@ describe("Dashboard", () => {
   // 7. Supabase error is handled gracefully
   it("handles Supabase fetch errors without crashing", async () => {
     mockAuthUser();
-    mockSupabaseQuery(null, { message: "Network error" });
+    mockCachedSymptoms(null, { message: "Network error" });
 
     render(<Dashboard />);
 
