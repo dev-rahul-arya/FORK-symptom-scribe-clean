@@ -133,7 +133,7 @@ const History = () => {
         const { error } = await supabase
           .from("symptom_history")
           .update({ resolved: newStatus })
-          .eq("id" as any, id);
+          .eq("id", id);
 
         if (error) throw error;
         await invalidateCache("symptom_history");
@@ -162,7 +162,7 @@ const History = () => {
         const { error } = await supabase
           .from("symptom_history")
           .delete()
-          .eq("id" as any, id);
+          .eq("id", id);
 
         if (error) throw error;
         await invalidateCache("symptom_history");

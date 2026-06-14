@@ -29,6 +29,7 @@ import {
   TrendingDown,
   Minus,
 } from "lucide-react";
+import type { Json } from "@/integrations/supabase/types";
 import { showSuccess, showError } from "@/lib/toast-helpers";
 import { useMetricsHistory } from "@/hooks/useMetricsHistory";
 import { db, syncOfflineData, type OfflineMetric } from "@/lib/offline-db";
@@ -243,10 +244,10 @@ const Metrics = () => {
           id: recordId,
           user_id: user.id,
           metric_type: metricType,
-          value: metricValue,
+          value: metricValue as Json,
           notes: notes || null,
           recorded_at: recordedAt,
-        } as any);
+        });
 
         if (error) throw error;
 

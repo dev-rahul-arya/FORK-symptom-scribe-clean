@@ -22,52 +22,12 @@
  * ## Adding providers
  *
  * If a new global provider is added to the app (e.g. a feature-flag context),
- * add it to the `AllProviders` component below so every test automatically
+ * add it to `AllProviders` in `./AllProviders.tsx` so every test automatically
  * benefits without per-file boilerplate.
  */
 import React from "react";
 import { render, type RenderOptions } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
-/**
- * Creates a fresh QueryClient for each test to avoid cross-test cache pollution.
- * Retries and network error logging are disabled to keep test output clean.
- */
-const createTestQueryClient = () =>
-  new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false,
-        gcTime: 0,
-      },
-      mutations: {
-        retry: false,
-      },
-    },
-  });
-
-interface AllProvidersProps {
-  children: React.ReactNode;
-  /** Override the initial route for router-dependent tests */
-  initialEntries?: string[];
-}
-
-/**
- * Wraps children with every provider the application requires.
- * Extend this component whenever a new top-level provider is introduced.
- */
-function AllProviders({
-  children,
-  initialEntries = ["/"],
-}: AllProvidersProps) {
-  const queryClient = createTestQueryClient();
-  return (
-    <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={initialEntries}>{children}</MemoryRouter>
-    </QueryClientProvider>
-  );
-}
+import AllProviders from "./AllProviders";
 
 /**
  * Custom render function. Accepts the same options as RTL's `render` plus an
