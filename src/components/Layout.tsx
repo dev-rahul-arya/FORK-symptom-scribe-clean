@@ -10,9 +10,9 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => {
   return (
     <SidebarProvider>
-      <div className="h-screen overflow-hidden flex w-full max-w-full bg-background">
+      <div className="min-h-screen overflow-hidden flex w-full max-w-full bg-background">
         <AppSidebar />
-        <div className="flex-1 flex flex-col min-h-0 min-w-0 overflow-hidden">
+        <div className="flex-1 flex flex-col min-h-0">
           <header className="h-14 shrink-0 border-b border-border flex items-center px-4 bg-card min-w-0">
             <div className="font-semibold text-lg truncate">
               Health Tracker
