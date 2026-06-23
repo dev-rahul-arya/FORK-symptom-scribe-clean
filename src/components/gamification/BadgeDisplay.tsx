@@ -1,9 +1,8 @@
-// src/components/gamification/BadgeDisplay.tsx
 import { useUserBadges } from "@/hooks/useGamification";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Award } from "lucide-react";
 
-export function BadgeDisplay() {
+export default function BadgeDisplay() {
   const { data: userBadges, isLoading } = useUserBadges();
 
   if (isLoading) {
