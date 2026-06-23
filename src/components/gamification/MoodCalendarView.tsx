@@ -116,7 +116,7 @@ export default function MoodCalendarView({ moodLogs, onLogMood }: Props) {
               disabled={!selectedMood || isLogging}
               className={`w-full py-3 rounded-lg text-sm font-semibold transition-all ${
                 selectedMood && !isLogging
-                  ? "bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer"
+                  ? "bg-primary hover:bg-primary/80 active:bg-primary/70 text-primary-foreground cursor-pointer shadow-md hover:shadow-lg transition-all"
                   : "bg-muted text-muted-foreground cursor-not-allowed opacity-50"
               }`}
             >
