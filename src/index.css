@@ -225,18 +225,23 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
 .flashcard-front,
 .flashcard-back {
   position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  border-radius: var(--radius);
+  overflow: hidden;
+  /* Opaque background so the hidden face can never bleed through
+     in browsers (e.g. Firefox) where backface-visibility is flaky. */
+  background: hsl(var(--card));
+}
+
+.flashcard-front {
+  transform: rotateY(0deg);
 }
 
 .flashcard-back {
-  transform: rotateY(180deg);
-}
-
-.flashcard-back {
-  
   transform: rotateY(180deg);
   display: flex;
   align-items: center;
